@@ -17,7 +17,7 @@ class MarcusInvestmentAnalyzer:
     """
     Analisador de Investimentos Marcus - Implementa estratégias dos maiores investidores
     Baseado em: Warren Buffett, Luiz Barsi, George Soros, Ray Dalio, Peter Lynch, Benjamin Graham
-    VERSÃO 2.0 - Corrigido Rate Limiting
+    VERSÃO 2.1 - Correção SyntaxError
     """
 
     def __init__(self):
@@ -25,11 +25,11 @@ class MarcusInvestmentAnalyzer:
         self.brazilian_tickers = [
             'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBDC4.SA', 'ABEV3.SA', 'BBAS3.SA',
             'WEGE3.SA', 'RENT3.SA', 'LREN3.SA', 'B3SA3.SA', 'SUZB3.SA', 'RAIL3.SA',
-            'VIVT3.SA', 'ELET6.SA', 'CCRO3.SA', 'MGLU3.SA'  # Reduzido para 16 ações
+            'VIVT3.SA', 'ELET6.SA', 'CCRO3.SA', 'MGLU3.SA'  # 16 ações principais
         ]
         self.us_tickers = [
             'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'BRK-B', 
-            'V', 'JNJ', 'WMT', 'PG', 'UNH', 'DIS', 'HD', 'MA'  # Reduzido para 16 ações
+            'V', 'JNJ', 'WMT', 'PG', 'UNH', 'DIS', 'HD', 'MA'  # 16 ações principais
         ]
         self.cache = {}  # Cache para evitar requisições repetidas
 
@@ -50,7 +50,7 @@ class MarcusInvestmentAnalyzer:
 
                 stock = yf.Ticker(ticker)
 
-                # Buscar informações básicas
+                # Buscar informações básicas com tratamento de erro
+                info = {}
                 try:
-                    info = stock.info
-         
+       
