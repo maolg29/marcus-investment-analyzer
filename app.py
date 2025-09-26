@@ -7,48 +7,62 @@ import random
 import warnings
 warnings.filterwarnings('ignore')
 
-class MarcusInvestmentAnalyzerPro:
+class MarcusAnalyzer:
     def __init__(self):
-        # AÇÕES BRASILEIRAS - 20 principais
-        self.brazilian_stocks = [
+        self.br_stocks = [
             'PETR4.SA', 'VALE3.SA', 'ITUB4.SA', 'BBDC4.SA', 'ABEV3.SA',
             'BBAS3.SA', 'WEGE3.SA', 'RENT3.SA', 'LREN3.SA', 'B3SA3.SA',
-            'MGLU3.SA', 'JBSS3.SA', 'SUZB3.SA', 'RAIL3.SA', 'VIVT3.SA',
-            'ELET6.SA', 'CCRO3.SA', 'EMBR3.SA', 'CSAN3.SA', 'CSNA3.SA'
+            'MGLU3.SA', 'JBSS3.SA', 'RAIL3.SA', 'VIVT3.SA', 'CCRO3.SA'
         ]
 
-        # SMALL CAPS BRASILEIRAS - 10 selecionadas  
-        self.brazilian_small = [
-            'LWSA3.SA', 'PRIO3.SA', 'RDOR3.SA', 'HAPV3.SA', 'SOMA3.SA',
-            'ALOS3.SA', 'MDIA3.SA', 'RECV3.SA', 'CXSE3.SA', 'TEND3.SA'
-        ]
-
-        # FIIs BRASILEIROS - 10 principais
-        self.brazilian_fiis = [
-            'HGLG11.SA', 'XPML11.SA', 'VISC11.SA', 'BCFF11.SA', 'BTLG11.SA',
-            'MXRF11.SA', 'KNRI11.SA', 'IRDM11.SA', 'HGRE11.SA', 'KNCR11.SA'
-        ]
-
-        # AÇÕES AMERICANAS - 20 principais
         self.us_stocks = [
-            'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'BRK-B',
-            'V', 'JNJ', 'WMT', 'PG', 'UNH', 'HD', 'MA', 'DIS',
-            'PYPL', 'ADBE', 'NFLX', 'CRM'
+            'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META',
+            'V', 'JNJ', 'WMT', 'PG', 'UNH', 'HD', 'MA', 'DIS'
         ]
 
-        # SMALL CAPS AMERICANAS - 10 selecionadas
-        self.us_small = [
-            'PLTR', 'RBLX', 'DKNG', 'COIN', 'ROKU', 'SQ', 'SHOP', 'SPOT', 'ZM', 'DOCU'
-        ]
+        self.cache = {}
 
-        # REITs AMERICANOS - 10 principais  
-        self.us_reits = [
-            'O', 'AMT', 'PLD', 'CCI', 'EQIX', 'WELL', 'DLR', 'PSA', 'EXR', 'AVB'
-        ]
+    def get_data(self, ticker):
+        if ticker in self.cache:
+            return self.cache[ticker]
 
-        # SETORES MAPEADOS
-        self.sectors = {
-            'Financeiro': ['ITUB4.SA', 'BBDC4.SA', 'BBAS3.SA', 'B3SA3.SA'],
-            'Tecnologia': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA'],
-            'Commodities': ['PETR4.SA', 'VALE3.SA', 'CSNA3.SA', 'CSAN3.SA'],
-            'Consumo': ['ABEV3.SA', 'LREN3
+        try:
+            time.sleep(random.uniform(1.5, 2.5))
+            stock = yf.Ticker(ticker)
+            info = stock.info
+
+            if not info:
+                return None
+
+            data = {
+                'ticker': ticker,
+                'name': info.get('longName', ticker)[:25],
+                'price': info.get('currentPrice', info.get('regularMarketPrice', 0)),
+                'pe': info.get('trailingPE', 0),
+                'pb': info.get('priceToBook', 0),
+                'roe': info.get('returnOnEquity', 0),
+                'dy': info.get('dividendYield', 0),
+                'sector': info.get('sector', 'N/A')
+            }
+
+            self.cache[ticker] = data
+            return data
+
+        except Exception as e:
+            st.warning(f"Erro {ticker}: {str(e)}")
+            return None
+
+    def buffett_analysis(self, stocks):
+        results = []
+        progress = st.progress(0)
+
+        for i, ticker in enumerate(stocks):
+            st.write(f"Analisando {ticker}...")
+            data = self.get_data(ticker)
+
+            if data and data['price'] > 0:
+                score = 0
+                reasons = []
+
+                roe = (data['roe'] or 0) * 100
+                pe = data['pe'] or 999
